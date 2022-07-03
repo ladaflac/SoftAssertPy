@@ -48,7 +48,7 @@ class SoftAssert(unittest.TestCase):
                 command_to_execute = getattr(WebElement, command)
                 command_to_execute(element)
             return element
-        except NoSuchElementException as err:
+        except Exception as err:
             caller, lineno = self.report_stack()
             self._failures_list.append(
                 {"caller": caller,

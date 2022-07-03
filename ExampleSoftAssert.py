@@ -12,8 +12,8 @@ class ExampleSoftAssert(SoftAssert):
 
         SoftAssert.soft_assert(self, self.assertEqual, response.status_code, 200, f"Request failed with status {response.status_code}")
 
-        h1Count = response.content.decode().count("h1")
-        SoftAssert.soft_assert(self, self.assertGreater, h1Count, 10, f"Header count is incorrect")
+        headerCount = response.content.decode().count("h1")
+        SoftAssert.soft_assert(self, self.assertGreater, headerCount, 10, f"Found {headerCount} headers, but expected 10")
 
         SoftAssert.soft_assert(self, self.assertTrue, "accounts.google.com/ServiceLogin" in response.content.decode())
 
@@ -27,7 +27,7 @@ class ExampleSoftAssert(SoftAssert):
 
         SoftAssert.soft_find_element(self, driver, By.XPATH, "//a[text() = 'Log in']")
 
-        h1Count = len(SoftAssert.soft_find_elements(self, driver, By.TAG_NAME, "h1"))
-        SoftAssert.soft_assert(self, self.assertGreater, h1Count, 10, msg=f"Header count is incorrect")
+        headerCount = len(SoftAssert.soft_find_elements(self, driver, By.TAG_NAME, "h1"))
+        SoftAssert.soft_assert(self, self.assertGreater, headerCount, 10, msg=f"Found {headerCount} headers, but expected 10")
 
         SoftAssert.assert_all(self)

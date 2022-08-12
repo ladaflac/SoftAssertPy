@@ -56,25 +56,6 @@ class SoftAssert(unittest.TestCase):
                  "err": err.msg})
             print(self._failures_list[-1])
 
-    def soft_find_elements(self, driver, By, value):
-        """
-        Searches for multiple elements, stores NoSuchElementException to test object
-        :param driver:  webdriver object
-        :param By:      locator strategy
-        :param value:   Locator value
-        :return:    Found elements
-        """
-        try:
-            elements = driver.find_elements(By, value)
-            return elements
-        except NoSuchElementException as err:
-            caller, lineno = self.report_stack()
-            self._failures_list.append(
-                {"caller": caller,
-                 "ln": lineno,
-                 "err": err.msg})
-            print(self._failures_list[-1])
-
     def assert_all(self):
         """
         Fails the test if there is at least one failure from previously executed check stored in the test object

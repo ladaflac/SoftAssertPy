@@ -45,7 +45,7 @@ class ExampleSoftAssert(SoftAssert):
         # selenium exception expected
         SoftAssert.soft_find_element(self, self.driver, By.XPATH, "//a[text() = 'Log in']")
 
-        headerCount = len(SoftAssert.soft_find_elements(self, self.driver, By.TAG_NAME, "h1"))
+        headerCount = len(self.driver.find_elements(By.TAG_NAME, "h1"))
         # assertion failure expected
         SoftAssert.soft_assert(self, self.assertGreater, headerCount, 10, msg=f"Found {headerCount} headers, but expected 10")
 

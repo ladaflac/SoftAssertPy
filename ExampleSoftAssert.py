@@ -40,10 +40,10 @@ class ExampleSoftAssert(SoftAssert):
         self.driver = openPageInChrome("https://www.google.com/search?q=python")
 
         # success expected
-        SoftAssert.soft_find_element(self, self.driver, By.XPATH, "//button[2]", "click")
+        SoftAssert.soft_find_element_or_attribute(self, self.driver, By.XPATH, "//button[2]", "click")
 
         # selenium exception expected
-        SoftAssert.soft_find_element(self, self.driver, By.XPATH, "//a[text() = 'Log in']")
+        SoftAssert.soft_find_element_or_attribute(self, self.driver, By.XPATH, "//a[text() = 'Log in']")
 
         headerCount = len(self.driver.find_elements(By.TAG_NAME, "h1"))
         # assertion failure expected

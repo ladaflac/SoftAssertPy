@@ -1,6 +1,5 @@
 import inspect
 import unittest
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.webelement import WebElement
 
 
@@ -8,7 +7,7 @@ class SoftAssert(unittest.TestCase):
     """
     Implementation of soft assertions for unittest and continuation of test run if a webdriver element was not found:
     1. Collect AssertionErrors and continue with test run
-    2. Collect webdriver's NoSuchElementExceptions and continue with test run
+    2. Collect webdriver's exception and continue with test run
     3. Fail the test after all the checks are done if there are collected failures
     """
     def __init__(self, methodName):
@@ -26,34 +25,66 @@ class SoftAssert(unittest.TestCase):
         try:
             assert_method(*expressions, **keywordExpressions)
         except AssertionError as err:
-            caller, lineno = self.report_stack()
+            caller, lineno, errMsg = self.report_stack(err)
             self._failures_list.append(
                 {"caller": caller,
                  "ln": lineno,
-                 "err": err})
+                 "err": errMsg})
             print(self._failures_list[-1])
 
-    def soft_find_element(self, driver, By, value, command=None):
+    def soft_find_element_or_attribute(self, driver, By, value, command=None, get_attribute=None):
         """
-        Searches for the element, stores NoSuchElementException to test object, executes a command on the found element
+        Searches for the element, stores exception to test object, executes a command on the found element
         :param driver:  webdriver object
         :param By:      locator strategy
         :param value:   Locator value
         :param command: (String) Name of the command to execute on found WebElement
         :return:    Found element
         """
+        element, attribute = None, None
         try:
             element = driver.find_element(By, value)
-            if command:
-                command_to_execute = getattr(WebElement, command)
-                command_to_execute(element)
-            return element
         except Exception as err:
-            caller, lineno = self.report_stack()
+            caller, lineno, errMsg = self.report_stack(err)
             self._failures_list.append(
                 {"caller": caller,
                  "ln": lineno,
-                 "err": err.msg})
+                 "err": errMsg})
+            print(self._failures_list[-1])
+            return
+
+        # get_attribute goes before command
+        # otherwise risk stale element reference exception
+        if get_attribute:
+            # Attribute will be None if it was not found, or "" if found but empty string, or a string
+            attribute = self.get_element_attribute(element, get_attribute)
+
+        if command:
+            self.call_action_on_element(element, command)
+
+        return attribute if get_attribute else element
+
+    def call_action_on_element(self, element, action):
+        try:
+            command_to_execute = getattr(WebElement, action)
+            command_to_execute(element)
+        except Exception as err:
+            caller, lineno, errMsg = self.report_stack(err)
+            self._failures_list.append(
+                {"caller": caller,
+                 "ln": lineno,
+                 "err": errMsg})
+            print(self._failures_list[-1])
+
+    def get_element_attribute(self, element, attribute):
+        try:
+            return element.get_attribute(attribute)
+        except Exception as err:
+            caller, lineno, errMsg = self.report_stack(err)
+            self._failures_list.append(
+                {"caller": caller,
+                 "ln": lineno,
+                 "err": errMsg})
             print(self._failures_list[-1])
 
     def assert_all(self):
@@ -65,13 +96,14 @@ class SoftAssert(unittest.TestCase):
             self.fail(f"One or more checks failed:\n{self._failures_list}")
 
     @staticmethod
-    def report_stack():
+    def report_stack(exception):
         """
         Returns the details about the line that didn't execute successfully in the caller method
         :return: caller - function name
         :return: lineno - line number
         """
         caller, lineno = None, None
+
         stack_list = inspect.stack()
         for stack in stack_list:
             func_name = getattr(stack, 'function', stack[3])
@@ -79,4 +111,8 @@ class SoftAssert(unittest.TestCase):
                 caller = func_name
                 lineno = stack.lineno
                 break
-        return caller, lineno
+
+        # Some AssertionErrors don't return msg but 'standardMsg'
+        exceptionMsg = exception.msg if hasattr(exception, "msg") else exception.args[0]
+
+        return caller, lineno, exceptionMsg

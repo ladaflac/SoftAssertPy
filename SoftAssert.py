@@ -1,5 +1,6 @@
 import inspect
 import unittest
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.remote.webelement import WebElement
 
 
@@ -86,6 +87,28 @@ class SoftAssert(unittest.TestCase):
                  "ln": lineno,
                  "err": errMsg})
             print(self._failures_list[-1])
+
+    def soft_find_element_expect_not_found(self, driver, By, value):
+        """
+        Searches for the element, stores exception to test object if NoSuchElementException is NOT returned
+        :param driver:  webdriver object
+        :param by:      Locator strategy object, eg. By.XPATH
+        :param value:   (String) Locator value, eg. "//div[@class='inbound']"
+        :return:        Found element or attribute value
+        """
+        element = None
+        try:
+            # Expects NoSuchElementException on element search, otherwise raises AssertionError
+            with self.assertRaises(NoSuchElementException, msg=f"Unexpected element found by {By} {value}") as exc:
+                element = driver.find_element(By, value)
+        except Exception as err:
+            caller, lineno, errMsg = self.report_stack(err)
+            self._failures_list.append(
+                {"caller": caller,
+                 "ln": lineno,
+                 "err": errMsg})
+            print(self._failures_list[-1])
+        return element
 
     def assert_all(self):
         """

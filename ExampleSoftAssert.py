@@ -49,6 +49,9 @@ class ExampleSoftAssert(SoftAssert):
         # assertion failure expected
         SoftAssert.soft_assert(self, self.assertGreater, headerCount, 10, msg=f"Found {headerCount} headers, but expected 10")
 
+        # selenium exception expected
+        SoftAssert.soft_find_element_expect_not_found(self, self.driver, By.XPATH, "//a[text() = '10']")
+
         # test failure expected
         SoftAssert.assert_all(self)
 

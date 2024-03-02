@@ -18,13 +18,23 @@ class SoftAssert(unittest.TestCase):
     def soft_assert(self, assert_method, *expressions, **keywordExpressions):
         """
         Calls the assert method, stores AssertionError to the test object
+        Example usage:
+            SoftFailuresCollector.soft_assert(unittest.TestCase.assertEqual, response.status_code, 200,
+                f"Request failed with status {response.status_code}")
+            SoftFailuresCollector.soft_assert(unittest.TestCase.assertTrue, len(flights) == 1,
+                f"Found {len(flights)} flights, but 1 was expected")
         :param assert_method:   unittest assert method
         :param expressions:     arguments to the assert method
         :param kwargs:          keyword arguments to the assert methods
         :return:
         """
         try:
-            assert_method(*expressions, **keywordExpressions)
+            # if assert_method is a function (added to special variables)
+            if type(assert_method).__name__ == "function":
+                assert_method(self, *expressions, **keywordExpressions)
+            # if assert_method is a bound method (type(assert_method).__name__ = "method")
+            else:
+                assert_method(*expressions, **keywordExpressions)
         except AssertionError as err:
             caller, lineno, errMsg = self.report_stack(err)
             self._failures_list.append(
